@@ -1,12 +1,22 @@
-const http = require('http');
-const express = require('express');
-const session = require('express-session');
+let express = require('express');
+let session = require('express-session');
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 const bodyParser = require('body-parser');
 const axios = require('axios');
 
-const app = express();
-app.use(session({secret: 'secret-cat'}));
+// Load environment variables
+require('dotenv').config();
+
+let app = express();
+
+// Express Session initializer with sequelize store
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  cookie: { maxAge: 60 * 60 * 1000 },
+  resave: false,
+  saveUninitialized: true,
+}))
+
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.post('/sms', async (req, res) => {
@@ -28,27 +38,26 @@ app.post('/sms', async (req, res) => {
 				message ='Successfully submited';
 			} else if (req.session.action === "2") {
 				await axios
-			      .get(
-			        "https://api.datar.online/v1/data/?auth_key=NzdlYWRjOTEtZjAzNi00ODQzLWJmMjYtNTkwMmI4ODkwODlj" +
-			          "&search=" +
-			          req.body.Body
-			      )
-			      .then(response => {
+				.get(
+					"https://api.datar.online/v1/data/?auth_key=" +
+					process.env.DATAR_API_KEY +
+					"&search=" +
+					req.body.Body
+				)
+				.then(response => {
 					message = response.data.data[0].data;
-			      })
-			      .catch(e => {
-				console.log(e)
-			      	message = "Nothing has been found with your search.";
-			      });
+				})
+				.catch(e => {
+					message = "Nothing has been found with your search.";
+				});
 
-			    req.session.action = undefined;
+				req.session.destroy();
 
 				twiml.message(message);
 				res.writeHead(200, {'Content-Type': 'text/xml'});
 				return res.end(twiml.toString());
 
 			}
-
 		}
 
 		if (!message) {
@@ -63,8 +72,7 @@ app.post('/sms', async (req, res) => {
 	}
 });
 
-
-http.createServer(app).listen(1337, () => {
-  console.log('Express server listening on port 1337');
+let port = process.env.PORT || 1337
+app.listen(port, function () {
+	console.log('DATAR SMS Demo running at port', port, '!');
 });
-
