@@ -40,7 +40,7 @@ app.post('/sms', async (req, res) => {
 					data: req.body.Body
 				})
 				.then(response => {
-					message ='Successfully submited';
+					message = response.data.message;
 				})
 				.catch(e => {
 					message = "Nothing has been found with your search.";
