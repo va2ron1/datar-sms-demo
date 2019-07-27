@@ -11,10 +11,10 @@ let app = express();
 
 // Express Session initializer with sequelize store
 app.use(session({
-  secret: process.env.SESSION_SECRET,
-  cookie: { maxAge: 60 * 60 * 1000 },
-  resave: false,
-  saveUninitialized: true,
+	secret: process.env.SESSION_SECRET,
+	cookie: { maxAge: 60 * 60 * 1000 },
+	resave: false,
+	saveUninitialized: true,
 }))
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -35,17 +35,12 @@ app.post('/sms', async (req, res) => {
 			}
 		} else if (req.session.action) {
 			if (req.session.action === "1") {
-				message ='Successfully submited';
-			} else if (req.session.action === "2") {
 				await axios
-				.get(
-					"https://api.datar.online/v1/data/?auth_key=" +
-					process.env.DATAR_API_KEY +
-					"&search=" +
-					req.body.Body
-				)
+				.post("https://api.datar.online/v1/data/?auth_key=" + process.env.DATAR_API_KEY, {
+					data: req.body.Body
+				})
 				.then(response => {
-					message = response.data.data[0].data;
+					message ='Successfully submited';
 				})
 				.catch(e => {
 					message = "Nothing has been found with your search.";
@@ -56,7 +51,31 @@ app.post('/sms', async (req, res) => {
 				twiml.message(message);
 				res.writeHead(200, {'Content-Type': 'text/xml'});
 				return res.end(twiml.toString());
+			} else if (req.session.action === "2") {
+				await axios
+				.get(
+					"https://api.datar.online/v1/data/?auth_key=" +
+					process.env.DATAR_API_KEY +
+					"&search=" +
+					req.body.Body
+				)
+				.then(response => {
+					let length = 3;
+					if (response.data.data.length < 3) {
+						length = response.data.data.length;
+					}
+					for (let i = (length - 1); i >= 0; i--) {
+						twiml.message(response.data.data[i].data);
+					}
+				})
+				.catch(e => {
+					twiml.message("Nothing has been found with your search.");
+				});
 
+				req.session.destroy();
+
+				res.writeHead(200, {'Content-Type': 'text/xml'});
+				return res.end(twiml.toString());
 			}
 		}
 
