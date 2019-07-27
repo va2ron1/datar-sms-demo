@@ -1,4 +1,4 @@
-# DATAR API
+# DATAR SMS Demo
 Environment variables (.env)
 
     DATAR_API_KEY=''
