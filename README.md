@@ -25,7 +25,7 @@ The project has been split into a few parts:
 
 - [DATAR API Keys Management](https://github.com/va2ron1/datar-management)
 - [DATAR API](https://github.com/va2ron1/datar-api)
-### Demos (Not available yet)
+### Demos
 - [Web platform](https://github.com/va2ron1/datar-web-demo) (rebuilt from scratch in Vue.js)
 - [Mobile App](https://github.com/va2ron1/datar-ios-demo) (iOS version) (rebuilt from scratch)
 - [Text Messaging](https://github.com/va2ron1/datar-sms-demo) (# Not available)
